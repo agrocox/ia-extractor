@@ -199,7 +199,10 @@ def upload_file():
         })
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"UPLOAD ERROR: {error_details}")
+        return jsonify({'error': f'{type(e).__name__}: {str(e)}'}), 500
 
 
 @app.route('/download/<filename>')
