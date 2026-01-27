@@ -132,13 +132,19 @@ class IADataExtractor:
 
     def process_pdf(self, pdf_path):
         """Process PDF and extract all IA data."""
+        import sys
         all_data = []
 
+        print(f"Opening PDF: {pdf_path}", file=sys.stderr, flush=True)
         with pdfplumber.open(pdf_path) as pdf:
-            for page in pdf.pages:
+            print(f"PDF has {len(pdf.pages)} pages", file=sys.stderr, flush=True)
+            for i, page in enumerate(pdf.pages):
+                print(f"Processing page {i+1}", file=sys.stderr, flush=True)
                 data = self.extract_ia_data(page)
                 all_data.append(data)
+                print(f"Page {i+1} done", file=sys.stderr, flush=True)
 
+        print(f"All pages processed, total records: {len(all_data)}", file=sys.stderr, flush=True)
         return all_data
 
     def create_excel(self, data, output_path):
@@ -200,6 +206,40 @@ def test_upload():
         })
     except Exception as e:
         return jsonify({'error': f'Test upload failed: {str(e)}'})
+
+
+@app.route('/test-pdf', methods=['POST'])
+def test_pdf():
+    """Test endpoint to check if PDF can be opened."""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file in request'})
+
+        file = request.files['file']
+
+        # Save file
+        app.config['UPLOAD_FOLDER'].mkdir(parents=True, exist_ok=True)
+        upload_path = app.config['UPLOAD_FOLDER'] / 'test.pdf'
+        file.save(upload_path)
+
+        # Try to open with pdfplumber
+        try:
+            with pdfplumber.open(upload_path) as pdf:
+                page_count = len(pdf.pages)
+                # Try extracting text from first page only
+                first_page_text = pdf.pages[0].extract_text()[:200] if pdf.pages else "No pages"
+        except Exception as e:
+            upload_path.unlink(missing_ok=True)
+            return jsonify({'error': f'pdfplumber failed: {type(e).__name__}: {str(e)}'})
+
+        upload_path.unlink(missing_ok=True)
+        return jsonify({
+            'success': True,
+            'page_count': page_count,
+            'first_page_preview': first_page_text
+        })
+    except Exception as e:
+        return jsonify({'error': f'Test PDF failed: {type(e).__name__}: {str(e)}'})
 
 
 @app.route('/upload', methods=['POST'])
