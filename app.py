@@ -194,6 +194,10 @@ def upload_file():
         if EXCEL_IMPORT_ERROR:
             return jsonify({'error': f'Excel library failed to load: {EXCEL_IMPORT_ERROR}'}), 500
 
+        # Ensure folders exist
+        app.config['UPLOAD_FOLDER'].mkdir(parents=True, exist_ok=True)
+        app.config['OUTPUT_FOLDER'].mkdir(parents=True, exist_ok=True)
+
         # Check if file was uploaded
         if 'file' not in request.files:
             return jsonify({'error': 'No file uploaded'}), 400
@@ -210,19 +214,32 @@ def upload_file():
         filename = secure_filename(file.filename)
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         upload_path = app.config['UPLOAD_FOLDER'] / f"{timestamp}_{filename}"
-        file.save(upload_path)
+
+        try:
+            file.save(upload_path)
+        except Exception as e:
+            return jsonify({'error': f'Failed to save file: {str(e)}'}), 500
 
         # Process PDF
-        extractor = IADataExtractor()
-        data = extractor.process_pdf(upload_path)
+        try:
+            extractor = IADataExtractor()
+            data = extractor.process_pdf(upload_path)
+        except Exception as e:
+            upload_path.unlink(missing_ok=True)
+            return jsonify({'error': f'Failed to process PDF: {str(e)}'}), 500
 
         # Create Excel file
         output_filename = f"IA_Log_{timestamp}.xlsx"
         output_path = app.config['OUTPUT_FOLDER'] / output_filename
-        extractor.create_excel(data, output_path)
+
+        try:
+            extractor.create_excel(data, output_path)
+        except Exception as e:
+            upload_path.unlink(missing_ok=True)
+            return jsonify({'error': f'Failed to create Excel: {str(e)}'}), 500
 
         # Clean up uploaded PDF
-        upload_path.unlink()
+        upload_path.unlink(missing_ok=True)
 
         return jsonify({
             'success': True,
