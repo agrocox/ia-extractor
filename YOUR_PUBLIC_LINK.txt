@@ -4,49 +4,45 @@
 ║                                                            ║
 ╚════════════════════════════════════════════════════════════╝
 
-🌍 PUBLIC URL (Share this with anyone):
+PUBLIC URL (Share this with anyone):
 
-    https://unarousing-democratically-kindra.ngrok-free.dev
-
-
-✅ WORKS ON:
-   • Any computer, phone, or tablet
-   • From anywhere in the world
-   • No login required
+    https://ia-extractor.onrender.com
 
 
-📧 EMAIL TO YOUR ASSISTANT:
+WORKS ON:
+   - Any computer, phone, or tablet
+   - From anywhere in the world
+   - No login required
+   - Works even when your Mac is off
+
+
+EMAIL TO YOUR TEAM:
 
 Subject: IA PDF to Excel Converter
 
 Hi,
 
 Use this link to convert IA PDFs to Excel:
-https://unarousing-democratically-kindra.ngrok-free.dev
+https://ia-extractor.onrender.com
 
 Just drag your PDF file onto the page and click "Upload & Process"!
 
 
-⚠️ IMPORTANT:
-   • ✅ NOW RUNS IN BACKGROUND (safe to close Terminal!)
-   • Your Mac needs to stay on
-   • If Mac reboots, run: ~/ia_extractor_web/run_forever.sh
-   • URL changes if you restart (free plan)
+HOW TO USE:
+   1. Go to https://ia-extractor.onrender.com
+   2. Drag & drop your IA PDF (or click "Choose File")
+   3. Click "Upload & Process"
+   4. Download the Excel file when done
 
 
-🔄 TO RESTART (if link stops working):
-
-   cd ~/ia_extractor_web
-   ./start_public.sh
-
-
-🛑 TO STOP:
-
-   pkill ngrok
-   pkill -f 'python3 app.py'
+NOTE:
+   - First visit may take 30 seconds to load (free hosting wakes up)
+   - After that it's fast
+   - Permanent link - will always work
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Created: January 9, 2026
-Status: ✅ ACTIVE
+Updated: January 27, 2026
+Hosted on: Render.com (Free tier)
+Status: ACTIVE

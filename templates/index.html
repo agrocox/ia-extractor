@@ -331,7 +331,7 @@
             } catch (error) {
                 processing.style.display = 'none';
                 uploadBtn.disabled = false;
-                showError('An error occurred while processing the file');
+                showError('Connection error: ' + error.message);
             }
         });
 

@@ -1,11 +1,13 @@
 services:
   - type: web
     name: ia-extractor
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    runtime: python
+    buildCommand: chmod +x render-build.sh && ./render-build.sh
+    startCommand: gunicorn app:app --timeout 120
     envVars:
       - key: PORT
         value: 10000
       - key: RENDER
+        value: true
+      - key: PYTHONUNBUFFERED
         value: true
