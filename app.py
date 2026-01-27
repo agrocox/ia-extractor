@@ -208,6 +208,38 @@ def test_upload():
         return jsonify({'error': f'Test upload failed: {str(e)}'})
 
 
+@app.route('/test-process', methods=['POST'])
+def test_process():
+    """Test full PDF processing without Excel creation."""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file in request'})
+
+        file = request.files['file']
+
+        # Save file
+        app.config['UPLOAD_FOLDER'].mkdir(parents=True, exist_ok=True)
+        upload_path = app.config['UPLOAD_FOLDER'] / 'test_process.pdf'
+        file.save(upload_path)
+
+        # Process PDF
+        try:
+            extractor = IADataExtractor()
+            data = extractor.process_pdf(upload_path)
+        except Exception as e:
+            upload_path.unlink(missing_ok=True)
+            return jsonify({'error': f'Processing failed: {type(e).__name__}: {str(e)}'})
+
+        upload_path.unlink(missing_ok=True)
+        return jsonify({
+            'success': True,
+            'record_count': len(data),
+            'first_record': data[0] if data else None
+        })
+    except Exception as e:
+        return jsonify({'error': f'Test failed: {type(e).__name__}: {str(e)}'})
+
+
 @app.route('/test-pdf', methods=['POST'])
 def test_pdf():
     """Test endpoint to check if PDF can be opened."""
