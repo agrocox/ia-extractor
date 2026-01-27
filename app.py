@@ -130,21 +130,21 @@ class IADataExtractor:
 
         return data
 
-    def process_pdf(self, pdf_path):
+    def process_pdf(self, pdf_path, max_pages=None):
         """Process PDF and extract all IA data."""
-        import sys
         all_data = []
 
-        print(f"Opening PDF: {pdf_path}", file=sys.stderr, flush=True)
         with pdfplumber.open(pdf_path) as pdf:
-            print(f"PDF has {len(pdf.pages)} pages", file=sys.stderr, flush=True)
-            for i, page in enumerate(pdf.pages):
-                print(f"Processing page {i+1}", file=sys.stderr, flush=True)
+            pages_to_process = pdf.pages
+            if max_pages:
+                pages_to_process = pdf.pages[:max_pages]
+
+            for page in pages_to_process:
                 data = self.extract_ia_data(page)
                 all_data.append(data)
-                print(f"Page {i+1} done", file=sys.stderr, flush=True)
+                # Clear page from memory
+                page.flush_cache()
 
-        print(f"All pages processed, total records: {len(all_data)}", file=sys.stderr, flush=True)
         return all_data
 
     def create_excel(self, data, output_path):
@@ -210,12 +210,14 @@ def test_upload():
 
 @app.route('/test-process', methods=['POST'])
 def test_process():
-    """Test full PDF processing without Excel creation."""
+    """Test PDF processing with limited pages."""
     try:
         if 'file' not in request.files:
             return jsonify({'error': 'No file in request'})
 
         file = request.files['file']
+        # Get optional page limit from form
+        max_pages = request.form.get('max_pages', type=int)
 
         # Save file
         app.config['UPLOAD_FOLDER'].mkdir(parents=True, exist_ok=True)
@@ -225,7 +227,7 @@ def test_process():
         # Process PDF
         try:
             extractor = IADataExtractor()
-            data = extractor.process_pdf(upload_path)
+            data = extractor.process_pdf(upload_path, max_pages=max_pages)
         except Exception as e:
             upload_path.unlink(missing_ok=True)
             return jsonify({'error': f'Processing failed: {type(e).__name__}: {str(e)}'})
