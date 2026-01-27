@@ -10,8 +10,21 @@ from datetime import datetime
 from pathlib import Path
 from flask import Flask, render_template, request, send_file, jsonify
 from werkzeug.utils import secure_filename
-import pdfplumber
-from openpyxl import Workbook
+
+# Try importing PDF libraries - catch errors for debugging
+try:
+    import pdfplumber
+    PDF_IMPORT_ERROR = None
+except Exception as e:
+    pdfplumber = None
+    PDF_IMPORT_ERROR = str(e)
+
+try:
+    from openpyxl import Workbook
+    EXCEL_IMPORT_ERROR = None
+except Exception as e:
+    Workbook = None
+    EXCEL_IMPORT_ERROR = str(e)
 
 app = Flask(__name__)
 
@@ -158,10 +171,29 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/health')
+def health():
+    """Health check endpoint for debugging."""
+    status = {
+        'app': 'running',
+        'pdfplumber': 'ok' if pdfplumber else f'FAILED: {PDF_IMPORT_ERROR}',
+        'openpyxl': 'ok' if Workbook else f'FAILED: {EXCEL_IMPORT_ERROR}',
+        'upload_folder': str(app.config['UPLOAD_FOLDER']),
+        'output_folder': str(app.config['OUTPUT_FOLDER']),
+    }
+    return jsonify(status)
+
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
     """Handle file upload and processing."""
     try:
+        # Check if libraries loaded correctly
+        if PDF_IMPORT_ERROR:
+            return jsonify({'error': f'PDF library failed to load: {PDF_IMPORT_ERROR}'}), 500
+        if EXCEL_IMPORT_ERROR:
+            return jsonify({'error': f'Excel library failed to load: {EXCEL_IMPORT_ERROR}'}), 500
+
         # Check if file was uploaded
         if 'file' not in request.files:
             return jsonify({'error': 'No file uploaded'}), 400
