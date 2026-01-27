@@ -184,6 +184,24 @@ def health():
     return jsonify(status)
 
 
+@app.route('/test-upload', methods=['POST'])
+def test_upload():
+    """Test endpoint to check if file uploads work."""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file in request', 'keys': list(request.files.keys())})
+
+        file = request.files['file']
+        return jsonify({
+            'success': True,
+            'filename': file.filename,
+            'content_type': file.content_type,
+            'size_received': True
+        })
+    except Exception as e:
+        return jsonify({'error': f'Test upload failed: {str(e)}'})
+
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
     """Handle file upload and processing."""
