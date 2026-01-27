@@ -14,14 +14,21 @@ import pdfplumber
 from openpyxl import Workbook
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = Path(__file__).parent / 'uploads'
-app.config['OUTPUT_FOLDER'] = Path(__file__).parent / 'output'
+
+# Use /tmp for cloud deployments (Render uses ephemeral filesystem)
+if os.environ.get('RENDER'):
+    app.config['UPLOAD_FOLDER'] = Path('/tmp/uploads')
+    app.config['OUTPUT_FOLDER'] = Path('/tmp/output')
+else:
+    app.config['UPLOAD_FOLDER'] = Path(__file__).parent / 'uploads'
+    app.config['OUTPUT_FOLDER'] = Path(__file__).parent / 'output'
+
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size
 app.config['ALLOWED_EXTENSIONS'] = {'pdf'}
 
 # Ensure folders exist
-app.config['UPLOAD_FOLDER'].mkdir(exist_ok=True)
-app.config['OUTPUT_FOLDER'].mkdir(exist_ok=True)
+app.config['UPLOAD_FOLDER'].mkdir(parents=True, exist_ok=True)
+app.config['OUTPUT_FOLDER'].mkdir(parents=True, exist_ok=True)
 
 
 def allowed_file(filename):
